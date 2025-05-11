@@ -135,11 +135,8 @@ bindsym $mod+i exec firefox
 # Program launcher (rofi)
 bindsym $mod+d exec --no-startup-id rofi -show drun
 
-# Alternative launchers (commented for reference)
-# bindsym $mod+d exec --no-startup-id dmenu_run
-# bindcode $mod+40 exec "rofi -modi drun,run -show drun"
-# bindcode $mod+40 exec --no-startup-id i3-dmenu-desktop
-
+# File Explorer (Nautilus)
+bindsym $mod+n exec nautilus
 
 # ===========================================================
 # 7. Screen Lock & Screenshots
