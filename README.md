@@ -13,3 +13,11 @@ This repository contains my configuration files (dotfiles) for a minimal, keyboa
 - **Alacritty**: GPU-accelerated terminal emulator
 - **Backgrounds**: Curated images for desktop wallpaper
 ---
+
+#### Fixes
+
+Left-click not working
+
+```
+sudo modprobe -r psmouse
+```
