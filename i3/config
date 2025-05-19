@@ -43,6 +43,13 @@ exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 # Set wallpaper
 exec_always feh --bg-scale ~/.config/backgrounds/bg.png
 
+# Clear all previous XKB options to avoid unwanted toggles (like Alt+Shift)
+exec_always --no-startup-id setxkbmap -option ""
+
+# Set keyboard layouts to US and Hebrew, using Caps Lock as the only toggle
+exec_always --no-startup-id setxkbmap -layout "us,il" -option "grp:caps_toggle"
+
+
 # ===========================================================
 # 3. Display Power & Screensaver Settings
 # ===========================================================
@@ -152,7 +159,6 @@ set $i3screenshot sh $HOME/.config/i3/scripts/screenshot.sh
 bindsym Print exec --no-startup-id $i3screenshot select
 bindsym Shift+Print exec --no-startup-id $i3screenshot full
 bindsym $mod+Print exec --no-startup-id $i3screenshot window
-
 
 # ===========================================================
 # 8. Workspace Management
