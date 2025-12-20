@@ -1,0 +1,8 @@
+# PyRadio Playlist File - Format:
+# name,url,encoding,icon,profile,buffering,force-http,volume,referer,player
+101 SMOOTH JAZZ,http://www.101smoothjazz.com/101-smoothjazz.m3u
+Galei Zahal,http://glzwizzlv.bynetcdn.com/glz_mp3
+Galgalatz,https://glzwizzlv.bynetcdn.com/glglz_mp3?awCollectionId=misc&awEpisodeId=glglz
+KAN Gimel,http://kanliveicy.media.kan.org.il/icy/749625_mp3
+Noshmim Mizrahit,http://www.rs.mizrahit.fm:7777/
+
