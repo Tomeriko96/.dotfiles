@@ -2,6 +2,10 @@
 # 1. General Settings
 # ===========================================================
 
+# Hide window titles (remove titlebars)
+new_window pixel 1
+new_float pixel 1
+
 set $mod Mod1
 
 # Font for window titles and bar
