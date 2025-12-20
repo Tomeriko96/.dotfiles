@@ -9,9 +9,8 @@ configuration{
     hide-scrollbar: true;
     display-combi: " 🖥️  All ";
     display-run: " 🏃  Run ";
-    display-window: " 🦟  Window";
+    display-window: " 🪟  Window";
     sidebar-mode: true;
 }
 
 @theme "catppuccin-mocha"
-

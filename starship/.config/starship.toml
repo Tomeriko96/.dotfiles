@@ -1,15 +1,14 @@
-[empty]
 add_newline = true
 command_timeout = 200
 format = "[$directory$git_branch$git_status]($style)$character"
 
 [character]
-error_symbol = "[\u2717](bold cyan)"
-success_symbol = "[\u276f](bold cyan)"
+error_symbol = "[✗](bold cyan)"
+success_symbol = "[❯](bold cyan)"
 
 [directory]
 truncation_length = 2
-truncation_symbol = "\u2026/"
+truncation_symbol = "…/"
 repo_root_style = "bold cyan"
 repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
 
@@ -20,13 +19,13 @@ style = "italic cyan"
 [git_status]
 format     = '[$all_status]($style)'
 style      = "cyan"
-ahead      = "\u21e1${count} "
-diverged   = "\u21d5\u21e1${ahead_count}\u21e3${behind_count} "
-behind     = "\u21e3${count} "
-conflicted = "\uebab "
-up_to_date = "\uf00c "
+ahead      = "⇡${count} "
+diverged   = "⇕⇡${ahead_count}⇣${behind_count} "
+behind     = "⇣${count} "
+conflicted = " "
+up_to_date = " "
 untracked  = "? "
-modified   = "\uea71 "
+modified   = " "
 stashed    = ""
 staged     = ""
 renamed    = ""
