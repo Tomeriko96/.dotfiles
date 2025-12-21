@@ -112,6 +112,9 @@ if ! shopt -oq posix; then
   fi
 fi
 
+# Use zoxide with bash
+eval "$(zoxide init bash)"
+
 # Load bash helpers
 source ~/.config/bash/rc
 
