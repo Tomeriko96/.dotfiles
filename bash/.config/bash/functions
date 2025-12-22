@@ -81,13 +81,13 @@ img2png() {
     "${img%.*}-optimized.png"
 }
 
-# FZF-powered Ctrl+R: interactive history search, places result in prompt for editing/execution
 __fzf_history__() {
   local selected
-  selected=$(history | fzf --tac --preview 'echo {}' | sed 's/ *[0-9]* *//')
+  selected=$(history | awk '{sub(/^[ \t]*[0-9]+[ \t]*/, ""); if (!seen[$0]++) print}' | fzf --tac --preview 'echo {}' | sed 's/ *[0-9]* *//')
   if [ -n "$selected" ]; then
     READLINE_LINE="$selected"
     READLINE_POINT=${#READLINE_LINE}
   fi
 }
 bind -x '"\C-r": __fzf_history__'
+
