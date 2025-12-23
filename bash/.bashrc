@@ -122,3 +122,4 @@ source ~/.config/bash/rc
 eval "$(starship init bash)"
 
 . "$HOME/.local/bin/env"
+eval "$(/usr/bin/mise activate bash)"
