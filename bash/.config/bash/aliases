@@ -1,4 +1,6 @@
-# File system
+# =====================
+# File System & Directory Navigation
+# =====================
 if command -v eza &> /dev/null; then
   alias ls='eza -lh --group-directories-first --icons=auto'
   alias lsa='ls -a'
@@ -6,24 +8,34 @@ if command -v eza &> /dev/null; then
   alias lta='lt -a'
 fi
 
-alias ff="fzf --preview 'batcat --style=numbers --color=always {}'"
-
-alias bat="batcat"
-
-if command -v zoxide &> /dev/null; then
-  alias cd="zd"
-  zd() {
-    if [ $# -eq 0 ]; then
-      builtin cd ~ && return
-    elif [ -d "$1" ]; then
-      builtin cd "$1"
-    else
-      z "$@" && printf "\U000F17A9 " && pwd || echo "Error: Directory not found"
-    fi
-  }
-fi
-
-# Directories
+# Directory Shortcuts
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
+
+
+# =====================
+# Fuzzy Finder & Previews
+# =====================
+if command -v fzf &> /dev/null && command -v batcat &> /dev/null; then
+  alias ff="fzf --preview 'batcat --style=numbers --color=always {}'"
+fi
+
+# =====================
+# File Viewing
+# =====================
+if command -v batcat &> /dev/null; then
+  alias bat="batcat"
+fi
+
+# =====================
+# Smart cd with zoxide
+# =====================
+if command -v zoxide &> /dev/null; then
+  alias cd="zd"
+fi
+
+# =====================
+# Compression
+# =====================
+alias decompress="tar -xzf"
