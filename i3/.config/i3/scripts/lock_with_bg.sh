@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set paths
-BG_IMAGE="$HOME/.config/backgrounds/bg.png"
+BG_IMAGE="$HOME/.local/share/backgrounds/bg.png"
 TMP_BG="/tmp/i3lock_bg.png"
 
 # Get screen resolution (works for single monitor setups)
@@ -15,4 +15,3 @@ i3lock -i "$TMP_BG"
 
 # Optionally, remove the temp file after unlocking
 rm "$TMP_BG"
-
