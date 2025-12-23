@@ -46,6 +46,8 @@ exec_always feh --bg-scale ~/.config/backgrounds/bg.png
 # Change keyboard
 exec --no-startup-id setxkbmap -layout "us,il" -option "grp:ralt_toggle"
 
+# Dark mode for GTK apps
+exec_always --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
 # ===========================================================
 # 3. Display Power & Screensaver Settings
