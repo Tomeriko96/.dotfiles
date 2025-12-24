@@ -41,13 +41,19 @@ exec_always killall polybar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 
 # Set wallpaper
-exec_always feh --bg-scale ~/.config/backgrounds/bg.png
+exec_always feh --bg-scale ~/.local/share/backgrounds/bg.png
 
 # Change keyboard
 exec_always --no-startup-id setxkbmap -layout "us,il" -option "grp:alts_toggle"
 
 # Dark mode for GTK apps
 exec_always --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+
+# Use only external monitor, if connected
+exec_always --no-startup-id ~/.config/i3/scripts/monitor-layout.sh
+
+# Optional: Quick toggle key (Mod+F4 to run script)
+bindsym $mod+F4 exec --no-startup-id ~/bin/monitor-layout.sh
 
 # ===========================================================
 # 3. Display Power & Screensaver Settings
