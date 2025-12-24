@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
-
-# Simple MPV-based internet radio controller for Polybar
+# MPV-based internet radio controller for Polybar
 
 RADIO_INDEX_FILE="/tmp/current_radio_index"
 MPV_SOCKET="/tmp/mpv-radio-socket"
-TRACK_INFO_FILE="/tmp/radio_track_info.txt"
 
 # Icons (require Nerd Fonts or similar)
 PLAY_ICON=""
 PAUSE_ICON=""
-STOP_ICON=""
 
 # Station list: "URL|Name"
 STATIONS=(
@@ -20,7 +17,6 @@ STATIONS=(
   "https://glzwizzlv.bynetcdn.com/glglz_mp3?awCollectionId=misc&awEpisodeId=glglz|Galgalatz"
   "http://www.101smoothjazz.com/101-smoothjazz.m3u|101 Smooth Jazz"
 )
-
 TOTAL_STATIONS=${#STATIONS[@]}
 
 # Load current index (default 0)
@@ -36,77 +32,58 @@ if ! [[ "$CURRENT_INDEX" =~ ^[0-9]+$ ]] || (( CURRENT_INDEX < 0 || CURRENT_INDEX
 fi
 
 save_index() {
-  echo "$CURRENT_INDEX" > "$RADIO_INDEX_FILE"
+  local idx="$CURRENT_INDEX"
+  echo "$idx" > "$RADIO_INDEX_FILE"
 }
 
-# Return "url name" for current station
 get_current_station() {
-  local station_info="${STATIONS[$CURRENT_INDEX]}"
-  local url name
+  local idx url name station_info
+  idx="$CURRENT_INDEX"
+  station_info="${STATIONS[$idx]}"
   IFS='|' read -r url name <<< "$station_info"
   echo "$url" "$name"
 }
 
-# Is radio playing? (mpv with our socket running)
 is_playing() {
-  if pgrep -f "mpv.*${MPV_SOCKET}" >/dev/null 2>&1; then
-    echo "true"
-  else
-    echo "false"
-  fi
+  local socket="$MPV_SOCKET"
+  pgrep -f "mpv.*${socket}" >/dev/null 2>&1 && echo "true" || echo "false"
 }
 
-# Start mpv on current station
 start_radio() {
-  local station_url
+  local station_url socket
   station_url=$(get_current_station | awk '{print $1}')
-  # Kill any previous instance using this socket
-  pkill -f "mpv.*${MPV_SOCKET}" >/dev/null 2>&1
-  nohup mpv --no-video --really-quiet --input-ipc-server="$MPV_SOCKET" "$station_url" \
+  socket="$MPV_SOCKET"
+  pkill -f "mpv.*${socket}" >/dev/null 2>&1
+  nohup mpv --no-video --really-quiet --input-ipc-server="$socket" "$station_url" \
     >/dev/null 2>&1 &
+  sleep 0.5
+  if ! pgrep -f "mpv.*${socket}" >/dev/null 2>&1; then
+    echo "Error: Failed to start MPV for $station_url" >&2
+  fi
 }
 
-# Stop (but not necessarily quit idle mpv)
 stop_radio() {
-  pkill -f "mpv.*${MPV_SOCKET}" >/dev/null 2>&1
+  local socket="$MPV_SOCKET"
+  pkill -f "mpv.*${socket}" >/dev/null 2>&1
 }
 
-# Full quit – same as stop in this setup
-quit_radio() {
-  stop_radio
-}
-
-# Next station (wrap around)
 next_station() {
-  CURRENT_INDEX=$(( (CURRENT_INDEX + 1) % TOTAL_STATIONS ))
+  local idx total
+  idx="$CURRENT_INDEX"
+  total="$TOTAL_STATIONS"
+  CURRENT_INDEX=$(( (idx + 1) % total ))
   save_index
   if [[ $(is_playing) == "true" ]]; then
     start_radio
   fi
 }
 
-# Previous station (wrap around)
-prev_station() {
-  CURRENT_INDEX=$(( (CURRENT_INDEX - 1 + TOTAL_STATIONS) % TOTAL_STATIONS ))
-  save_index
-  if [[ $(is_playing) == "true" ]]; then
-    start_radio
-  fi
-}
-
-# Log current station name with timestamp
-log_track() {
-  local station_name
-  station_name=$(get_current_station | cut -d' ' -f2-)
-  printf '%s: %s\n' "$(date '+%F %T')" "$station_name" >> "$TRACK_INFO_FILE"
-}
-
-# Output for Polybar
 update_info() {
-  local status icon station_name
+  local status icon station_name display_text track_info
   status=$(is_playing)
   station_name=$(get_current_station | cut -d' ' -f2-)
-
+  icon="$PLAY_ICON"
+  display_text="$station_name"
   if [[ "$status" == "true" ]]; then
     icon="$PAUSE_ICON"
   else
@@ -122,9 +99,6 @@ case "$1" in
   next)
     next_station
     ;;
-  prev)
-    prev_station
-    ;;
   toggle)
     if [[ $(is_playing) == "true" ]]; then
       stop_radio
@@ -133,10 +107,7 @@ case "$1" in
     fi
     ;;
   stop)
-    quit_radio
-    ;;
-  log)
-    log_track
+    stop_radio
     ;;
 esac
 
