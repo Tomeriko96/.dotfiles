@@ -55,6 +55,12 @@ exec_always --no-startup-id ~/.config/i3/scripts/monitor-layout.sh
 # Optional: Quick toggle key (Mod+F4 to run script)
 bindsym $mod+F4 exec --no-startup-id ~/bin/monitor-layout.sh
 
+# Clipboard manager using greenclip
+exec --no-startup-id greenclip daemon
+
+# Bind key to open greenclip menu
+bindsym $mod+ctrl+v exec rofi -modi "clipboard:greenclip print" -show clipboard
+
 # ===========================================================
 # 3. Display Power & Screensaver Settings
 # ===========================================================
