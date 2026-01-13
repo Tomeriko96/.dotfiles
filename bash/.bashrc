@@ -120,5 +120,4 @@ source ~/.config/bash/rc
 # Use starship with bash
 eval "$(starship init bash)"
 
-. "$HOME/.local/bin/env"
 eval "$($HOME/.local/bin/mise activate bash)"
