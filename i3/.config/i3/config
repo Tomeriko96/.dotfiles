@@ -149,6 +149,7 @@ bindsym $mod+Return exec alacritty
 
 # Browser
 bindsym $mod+i exec firefox
+bindsym $mod+z exec chromium
 
 # Program launcher (rofi)
 bindsym $mod+d exec --no-startup-id rofi -show drun
