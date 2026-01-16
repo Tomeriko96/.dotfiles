@@ -160,6 +160,11 @@ bindsym $mod+n exec nautilus
 # Code Editor (Visual Studio Code)
 bindsym $mod+c exec code
 
+# Radio
+bindsym $mod+x  exec ~/.config/i3/scripts/radio.sh toggle
+bindsym $mod+shift+x  exec ~/.config/i3/scripts/radio.sh next
+
+
 # ===========================================================
 # 7. Screen Lock & Screenshots
 # ===========================================================
