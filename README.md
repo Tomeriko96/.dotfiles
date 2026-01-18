@@ -7,7 +7,7 @@ Personal dotfiles for a minimal, keyboard-driven Linux desktop. Managed with [GN
 Clone to your home directory:
 
 ```sh
-git clone https://github.com/yourusername/dotfiles.git ~/.dotfiles
+git clone https://github.com/Tomeriko96/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ```
 
