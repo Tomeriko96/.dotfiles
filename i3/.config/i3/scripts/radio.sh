@@ -78,6 +78,21 @@ next_station() {
   fi
 }
 
+previous_station() {
+  local idx total
+  idx="$CURRENT_INDEX"
+  total="$TOTAL_STATIONS"
+  if (( idx == 0 )); then
+    CURRENT_INDEX=$(( total - 1 ))
+  else
+    CURRENT_INDEX=$(( idx - 1 ))
+  fi
+  save_index
+  if [[ $(is_playing) == "true" ]]; then
+    start_radio
+  fi
+}
+
 update_info() {
   local status icon station_name display_text track_info
   status=$(is_playing)
@@ -96,6 +111,9 @@ update_info() {
 }
 
 case "$1" in
+  prev)
+    previous_station
+    ;;
   next)
     next_station
     ;;
