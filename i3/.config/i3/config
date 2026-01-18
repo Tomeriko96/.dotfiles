@@ -40,8 +40,11 @@ exec --no-startup-id nm-applet
 exec_always killall polybar
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 
-# Set wallpaper
-exec_always feh --bg-scale ~/.local/share/backgrounds/bg.png
+# Set wallpaper (managed)
+exec_always --no-startup-id ~/.config/i3/scripts/wallpaper_manager.sh apply
+
+# Keybindings: Mod+b = previous wallpaper, Mod+Shift+b = next wallpaper
+bindsym $mod+b exec --no-startup-id ~/.config/i3/scripts/wallpaper_manager.sh random
 
 # Change keyboard
 exec_always --no-startup-id setxkbmap -layout "us,il" -option "grp:alts_toggle"
