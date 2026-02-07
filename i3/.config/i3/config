@@ -64,6 +64,9 @@ exec --no-startup-id greenclip daemon
 # Bind key to open greenclip menu
 bindsym $mod+ctrl+v exec rofi -modi "clipboard:greenclip print" -show clipboard
 
+# Enable automatic arandr configuration on monitor changes using autorandr
+exec_always --no-startup-id autorandr --change
+
 # ===========================================================
 # 3. Display Power & Screensaver Settings
 # ===========================================================
