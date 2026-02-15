@@ -1,14 +1,46 @@
 #!/usr/bin/env bash
 # Improved i3 wallpaper manager - robust, debug-friendly, handles multi-monitor
-# Usage: wallpaper_manager.sh [apply|next|prev|random|list|set <name>] 
-# Place wallpapers in ~/.local/share/backgrounds/
+#
+# THEME-AWARE WALLPAPER DIRECTORY USAGE:
+#   - For Catppuccin Mocha (dark): use ./backgrounds (symlinked to ~/.local/share/backgrounds)
+#   - For Catppuccin Latte (light): use ./backgrounds-latte (symlinked to ~/.local/share/backgrounds-latte)
+#
+#   theme-switch.sh will call this script with the correct directory for the current theme.
+#   This script will ONLY use the directory passed as the first argument (if valid),
+#   so latte mode will never show dark wallpapers and vice versa.
+#
+# Usage: wallpaper_manager.sh [apply|next|prev|random|list|set <name>] [WALLPAPER_DIR]
+#
+# Place wallpapers in:
+#   - ~/.local/share/backgrounds         (for dark/mocha)
+#   - ~/.local/share/backgrounds-latte   (for light/latte)
+
 
 set -euo pipefail
 
 readonly SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
-readonly DIR="$HOME/.local/share/backgrounds"
-readonly CURRENT_FILE="$DIR/.current"
-readonly LOG_FILE="/tmp/wallpaper_manager.log"
+
+# THEME DIRECTORY LOGIC
+# 1. If a directory argument is given, use it (for theme-switch.sh)
+# 2. Otherwise, auto-detect theme from ~/.config/i3/themes/current-colors
+#    and use the correct backgrounds directory for mocha/latte
+if [ -n "${1:-}" ] && [ -d "$1" ]; then
+    DIR="$1"
+else
+    # Try to detect theme from i3 current-colors
+    I3_COLORS="$HOME/.config/i3/themes/current-colors"
+    if [ -f "$I3_COLORS" ]; then
+        if grep -q '# latte' "$I3_COLORS"; then
+            DIR="$HOME/.local/share/backgrounds_latte"
+        else
+            DIR="$HOME/.local/share/backgrounds"
+        fi
+    else
+        DIR="$HOME/.local/share/backgrounds"
+    fi
+fi
+CURRENT_FILE="$DIR/.current"
+LOG_FILE="/tmp/wallpaper_manager.log"
 
 # Colors for better error feedback
 readonly RED='\033[0;31m'

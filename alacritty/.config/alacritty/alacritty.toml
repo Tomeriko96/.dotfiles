@@ -22,5 +22,5 @@ style = "Regular"
 
 [general]
 import = [
-	"~/.config/alacritty/catppuccin-mocha.toml"
+	"~/.config/alacritty/current-theme.toml"
 ]
