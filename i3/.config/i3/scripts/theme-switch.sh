@@ -102,16 +102,68 @@ if command -v code >/dev/null 2>&1; then
     else
       # crude sed fallback: replace or add the colorTheme and iconTheme lines
       if grep -q '"workbench.colorTheme"' "$VSCODE_SETTINGS"; then
-        sed -i "s/\("workbench.colorTheme" *: *\)\"[^"]*\"/\1\"$THEME_NAME\"/" "$VSCODE_SETTINGS"
+        sed -i "s/\("workbench.colorTheme" *: *\)\"[^\"]*\"/\1\"$THEME_NAME\"/" "$VSCODE_SETTINGS"
       else
         sed -i "1s/^/{\n  \"workbench.colorTheme\": \"$THEME_NAME\",\n/" "$VSCODE_SETTINGS"
       fi
       if grep -q '"workbench.iconTheme"' "$VSCODE_SETTINGS"; then
-        sed -i "s/\("workbench.iconTheme" *: *\)\"[^"]*\"/\1\"$ICON_NAME\"/" "$VSCODE_SETTINGS"
+        sed -i "s/\("workbench.iconTheme" *: *\)\"[^\"]*\"/\1\"$ICON_NAME\"/" "$VSCODE_SETTINGS"
       else
         sed -i "1s/^/{\n  \"workbench.iconTheme\": \"$ICON_NAME\",\n/" "$VSCODE_SETTINGS"
       fi
     fi
+  fi
+fi
+
+# Positron Catppuccin theme switching (colorTheme and iconTheme)
+if [ -d "$HOME/.config/Positron/User" ]; then
+  POSITRON_SETTINGS="$HOME/.config/Positron/User/settings.json"
+  if [ "$THEME" = "mocha" ]; then
+    THEME_NAME="Catppuccin Mocha"
+    ICON_NAME="catppuccin-mocha"
+  else
+    THEME_NAME="Catppuccin Latte"
+    ICON_NAME="catppuccin-latte"
+  fi
+  if [ -f "$POSITRON_SETTINGS" ]; then
+    COMMENT_LINE=""
+    TMP_JSON=$(mktemp)
+    TMP_OUT=$(mktemp)
+    # If the first line is a comment, save it and strip for processing
+    if head -n1 "$POSITRON_SETTINGS" | grep -q '^//'; then
+      COMMENT_LINE="$(head -n1 "$POSITRON_SETTINGS")"
+      tail -n +2 "$POSITRON_SETTINGS" > "$TMP_JSON"
+    else
+      cp "$POSITRON_SETTINGS" "$TMP_JSON"
+    fi
+    if command -v jq >/dev/null 2>&1; then
+      jq --arg theme "$THEME_NAME" --arg icon "$ICON_NAME" '. + {"workbench.colorTheme": $theme, "workbench.iconTheme": $icon}' "$TMP_JSON" > "$TMP_OUT" && \
+      {
+        if [ -n "$COMMENT_LINE" ]; then
+          echo "$COMMENT_LINE" > "$POSITRON_SETTINGS"; cat "$TMP_OUT" >> "$POSITRON_SETTINGS";
+        else
+          mv "$TMP_OUT" "$POSITRON_SETTINGS";
+        fi
+      }
+    else
+      # crude sed fallback: replace or add the colorTheme and iconTheme lines
+      if grep -q '"workbench.colorTheme"' "$TMP_JSON"; then
+        sed -i "s/\("workbench.colorTheme" *: *\)\"[^\"]*\"/\1\"$THEME_NAME\"/" "$TMP_JSON"
+      else
+        sed -i "1s/^/  \"workbench.colorTheme\": \"$THEME_NAME\",\n/" "$TMP_JSON"
+      fi
+      if grep -q '"workbench.iconTheme"' "$TMP_JSON"; then
+        sed -i "s/\("workbench.iconTheme" *: *\)\"[^\"]*\"/\1\"$ICON_NAME\"/" "$TMP_JSON"
+      else
+        sed -i "1s/^/  \"workbench.iconTheme\": \"$ICON_NAME\",\n/" "$TMP_JSON"
+      fi
+      if [ -n "$COMMENT_LINE" ]; then
+        echo "$COMMENT_LINE" > "$POSITRON_SETTINGS"; cat "$TMP_JSON" >> "$POSITRON_SETTINGS";
+      else
+        mv "$TMP_JSON" "$POSITRON_SETTINGS";
+      fi
+    fi
+    rm -f "$TMP_JSON" "$TMP_OUT"
   fi
 fi
 
