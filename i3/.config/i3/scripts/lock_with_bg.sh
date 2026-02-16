@@ -2,16 +2,30 @@
 #!/bin/bash
 
 # Requires: i3lock, imagemagick
-# Set paths (only use primary user backgrounds dir)
-PRIMARY_DIR="$HOME/.local/share/backgrounds"
 
-# Prefer current selection in primary, then bg.png in primary
-if [ -f "$PRIMARY_DIR/.current" ]; then
-	BG_IMAGE="$PRIMARY_DIR/$(cat "$PRIMARY_DIR/.current")"
-elif [ -f "$PRIMARY_DIR/bg.png" ]; then
-	BG_IMAGE="$PRIMARY_DIR/bg.png"
+# Detect current theme (mocha/latte) using i3 theme marker
+TARGET_I3_COLORS="$HOME/.config/i3/themes/current-colors"
+THEME="mocha"
+if [ -f "$TARGET_I3_COLORS" ]; then
+	if grep -q "# latte" "$TARGET_I3_COLORS" 2>/dev/null; then
+		THEME="latte"
+	fi
+fi
+
+# Set backgrounds dir based on theme (underscore for latte)
+if [ "$THEME" = "latte" ]; then
+	BG_DIR="$HOME/.local/share/backgrounds_latte"
 else
-	echo "No background image found for lock screen" >&2
+	BG_DIR="$HOME/.local/share/backgrounds"
+fi
+
+# Prefer current selection in theme dir, then bg.png in theme dir
+if [ -f "$BG_DIR/.current" ]; then
+	BG_IMAGE="$BG_DIR/$(cat "$BG_DIR/.current")"
+elif [ -f "$BG_DIR/bg.png" ]; then
+	BG_IMAGE="$BG_DIR/bg.png"
+else
+	echo "No background image found for lock screen in $BG_DIR" >&2
 	exit 1
 fi
 
