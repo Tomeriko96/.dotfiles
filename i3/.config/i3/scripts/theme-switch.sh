@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# theme-switch.sh - copy theme files from dotfiles to user config and reload services
+# theme-switch.sh — Catppuccin theme switcher for Alacritty, Rofi, btop, i3, Polybar, picom, GTK, and wallpaper.
 # Usage: theme-switch.sh <mocha|latte|toggle|dry-run>
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,6 +12,7 @@ TARGET_ROFI="$HOME/.config/rofi/theme.rasi"
 TARGET_BTOP="$HOME/.config/btop/themes/current.theme"
 TARGET_I3_COLORS="$HOME/.config/i3/themes/current-colors"
 TARGET_POLYBAR="$HOME/.config/polybar/config.ini"
+I3_CONFIG="$HOME/.config/i3/config"
 
 MODE="${1:-toggle}"
 DRY_RUN=false
@@ -20,11 +21,11 @@ if [ "$MODE" = "dry-run" ]; then
   MODE="toggle"
 fi
 
-choose_theme(){
+# ---------- Theme selection ----------
+choose_theme() {
   case "$1" in
     mocha|latte) echo "$1" ;;
     toggle)
-      # read current marker if exists
       if [ -f "$TARGET_I3_COLORS" ]; then
         if grep -q "# latte" "$TARGET_I3_COLORS" 2>/dev/null; then
           echo "mocha"
@@ -39,142 +40,59 @@ choose_theme(){
   esac
 }
 
+# ---------- GTK persistence helper ----------
+apply_gtk_theme_persistent() {
+  local theme="$1"
+  if command -v gsettings >/dev/null 2>&1; then
+    echo "Setting persistent GTK theme for $theme..."
+    if [ "$theme" = "mocha" ]; then
+      gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' || true
+    else
+      gsettings set org.gnome.desktop.interface color-scheme 'prefer-light' || true
+    fi
+    dbus-launch dconf update >/dev/null 2>&1 || true
+  fi
+}
+
+# ---------- Start ----------
 THEME=$(choose_theme "$MODE")
 THEME_DIR="$DOTFILES_DIR/theme/catppuccin/$THEME"
 
-echo "Switching theme -> $THEME"
+echo "Switching theme → $THEME"
 if command -v notify-send >/dev/null 2>&1; then
   notify-send "Theme switched" "Catppuccin $THEME applied"
 fi
 
 if [ "$DRY_RUN" = true ]; then
-  echo "DRY RUN: will copy from $THEME_DIR to user config targets:" >&2
-  echo "  $TARGET_ALACRITTY" >&2
-  echo "  $TARGET_ROFI" >&2
-  echo "  $TARGET_BTOP" >&2
-  echo "  $TARGET_I3_COLORS" >&2
+  echo "Dry run mode. Files would be copied from:"
+  echo "  $THEME_DIR"
   exit 0
 fi
 
-mkdir -p "$HOME/.config/alacritty"
-mkdir -p "$(dirname "$TARGET_ROFI")"
-mkdir -p "$(dirname "$TARGET_BTOP")"
-mkdir -p "$(dirname "$TARGET_I3_COLORS")"
-mkdir -p "$HOME/.config/polybar"
+# ---------- Copy theme files ----------
+mkdir -p "$HOME/.config/alacritty" \
+         "$(dirname "$TARGET_ROFI")" \
+         "$(dirname "$TARGET_BTOP")" \
+         "$(dirname "$TARGET_I3_COLORS")" \
+         "$HOME/.config/polybar"
 
 cp -v "$THEME_DIR/alacritty.toml" "$TARGET_ALACRITTY"
 cp -v "$THEME_DIR/rofi.rasi" "$TARGET_ROFI"
 cp -v "$THEME_DIR/btop.theme" "$TARGET_BTOP"
 cp -v "$THEME_DIR/i3-colors" "$TARGET_I3_COLORS"
-
-# Copy the full polybar config for the selected theme
 if [ -f "$THEME_DIR/polybar.ini" ]; then
   cp -v "$THEME_DIR/polybar.ini" "$TARGET_POLYBAR"
-  echo "Installed polybar config for $THEME"
+  echo "Installed polybar config for $THEME."
 fi
 
+# ---------- Persist GTK before reload ----------
+apply_gtk_theme_persistent "$THEME"
 
-# GTK color-scheme
-if command -v gsettings >/dev/null 2>&1; then
-  if [ "$THEME" = "mocha" ]; then
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' || true
-  else
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light' || true
-  fi
-fi
-
-# VSCode Catppuccin theme switching (colorTheme and iconTheme)
-if command -v code >/dev/null 2>&1; then
-  code --install-extension Catppuccin.catppuccin-vsc --force >/dev/null 2>&1 || true
-  VSCODE_SETTINGS="$HOME/.config/Code/User/settings.json"
-  if [ "$THEME" = "mocha" ]; then
-    THEME_NAME="Catppuccin Mocha"
-    ICON_NAME="catppuccin-mocha"
-  else
-    THEME_NAME="Catppuccin Latte"
-    ICON_NAME="catppuccin-latte"
-  fi
-  if [ -f "$VSCODE_SETTINGS" ]; then
-    # Use jq if available, else fallback to sed
-    if command -v jq >/dev/null 2>&1; then
-      tmpfile=$(mktemp)
-      jq --arg theme "$THEME_NAME" --arg icon "$ICON_NAME" '. + {"workbench.colorTheme": $theme, "workbench.iconTheme": $icon}' "$VSCODE_SETTINGS" > "$tmpfile" && mv "$tmpfile" "$VSCODE_SETTINGS"
-    else
-      # crude sed fallback: replace or add the colorTheme and iconTheme lines
-      if grep -q '"workbench.colorTheme"' "$VSCODE_SETTINGS"; then
-        sed -i "s/\("workbench.colorTheme" *: *\)\"[^\"]*\"/\1\"$THEME_NAME\"/" "$VSCODE_SETTINGS"
-      else
-        sed -i "1s/^/{\n  \"workbench.colorTheme\": \"$THEME_NAME\",\n/" "$VSCODE_SETTINGS"
-      fi
-      if grep -q '"workbench.iconTheme"' "$VSCODE_SETTINGS"; then
-        sed -i "s/\("workbench.iconTheme" *: *\)\"[^\"]*\"/\1\"$ICON_NAME\"/" "$VSCODE_SETTINGS"
-      else
-        sed -i "1s/^/{\n  \"workbench.iconTheme\": \"$ICON_NAME\",\n/" "$VSCODE_SETTINGS"
-      fi
-    fi
-  fi
-fi
-
-# Positron Catppuccin theme switching (colorTheme and iconTheme)
-if [ -d "$HOME/.config/Positron/User" ]; then
-  POSITRON_SETTINGS="$HOME/.config/Positron/User/settings.json"
-  if [ "$THEME" = "mocha" ]; then
-    THEME_NAME="Catppuccin Mocha"
-    ICON_NAME="catppuccin-mocha"
-  else
-    THEME_NAME="Catppuccin Latte"
-    ICON_NAME="catppuccin-latte"
-  fi
-  if [ -f "$POSITRON_SETTINGS" ]; then
-    COMMENT_LINE=""
-    TMP_JSON=$(mktemp)
-    TMP_OUT=$(mktemp)
-    # If the first line is a comment, save it and strip for processing
-    if head -n1 "$POSITRON_SETTINGS" | grep -q '^//'; then
-      COMMENT_LINE="$(head -n1 "$POSITRON_SETTINGS")"
-      tail -n +2 "$POSITRON_SETTINGS" > "$TMP_JSON"
-    else
-      cp "$POSITRON_SETTINGS" "$TMP_JSON"
-    fi
-    if command -v jq >/dev/null 2>&1; then
-      jq --arg theme "$THEME_NAME" --arg icon "$ICON_NAME" '. + {"workbench.colorTheme": $theme, "workbench.iconTheme": $icon}' "$TMP_JSON" > "$TMP_OUT" && \
-      {
-        if [ -n "$COMMENT_LINE" ]; then
-          echo "$COMMENT_LINE" > "$POSITRON_SETTINGS"; cat "$TMP_OUT" >> "$POSITRON_SETTINGS";
-        else
-          mv "$TMP_OUT" "$POSITRON_SETTINGS";
-        fi
-      }
-    else
-      # crude sed fallback: replace or add the colorTheme and iconTheme lines
-      if grep -q '"workbench.colorTheme"' "$TMP_JSON"; then
-        sed -i "s/\("workbench.colorTheme" *: *\)\"[^\"]*\"/\1\"$THEME_NAME\"/" "$TMP_JSON"
-      else
-        sed -i "1s/^/  \"workbench.colorTheme\": \"$THEME_NAME\",\n/" "$TMP_JSON"
-      fi
-      if grep -q '"workbench.iconTheme"' "$TMP_JSON"; then
-        sed -i "s/\("workbench.iconTheme" *: *\)\"[^\"]*\"/\1\"$ICON_NAME\"/" "$TMP_JSON"
-      else
-        sed -i "1s/^/  \"workbench.iconTheme\": \"$ICON_NAME\",\n/" "$TMP_JSON"
-      fi
-      if [ -n "$COMMENT_LINE" ]; then
-        echo "$COMMENT_LINE" > "$POSITRON_SETTINGS"; cat "$TMP_JSON" >> "$POSITRON_SETTINGS";
-      else
-        mv "$TMP_JSON" "$POSITRON_SETTINGS";
-      fi
-    fi
-    rm -f "$TMP_JSON" "$TMP_OUT"
-  fi
-fi
-
-# Wallpaper switching: use backgrounds or backgrounds-latte, create latte dir and copy bg.png if missing
+# ---------- Wallpaper switching ----------
 WALLPAPER_DIR="$HOME/.local/share/backgrounds"
 if [ "$THEME" = "latte" ]; then
   LATTE_BG_DIR="$HOME/.local/share/backgrounds-latte"
-  if [ ! -d "$LATTE_BG_DIR" ]; then
-    mkdir -p "$LATTE_BG_DIR"
-  fi
-  # If no images in latte dir, copy bg.png from main backgrounds as default
+  mkdir -p "$LATTE_BG_DIR"
   if ! ls "$LATTE_BG_DIR"/*.{png,jpg,jpeg,gif,bmp,tiff,svg,webp,JPG,JPEG,PNG} >/dev/null 2>&1; then
     if [ -f "$HOME/.local/share/backgrounds/bg.png" ]; then
       cp "$HOME/.local/share/backgrounds/bg.png" "$LATTE_BG_DIR/bg.png"
@@ -182,28 +100,56 @@ if [ "$THEME" = "latte" ]; then
   fi
   WALLPAPER_DIR="$LATTE_BG_DIR"
 fi
+
 if [ -x "$HOME/.config/i3/scripts/wallpaper_manager.sh" ]; then
   "$HOME/.config/i3/scripts/wallpaper_manager.sh" apply "$WALLPAPER_DIR"
 fi
 
-# Reload i3 (reload config to pick up include)
+# ---------- Determine if i3 manages Polybar ----------
+I3_POLYBAR_MANAGED=false
+if [ -f "$I3_CONFIG" ] && grep -q "polybar" "$I3_CONFIG"; then
+  if grep -qE 'exec(_always)?\s+.*polybar' "$I3_CONFIG"; then
+    I3_POLYBAR_MANAGED=true
+  fi
+fi
+
+# ---------- Reload i3 ----------
 if command -v i3-msg >/dev/null 2>&1; then
   i3-msg reload || true
+  sleep 0.5
 fi
 
-# Restart polybar (ensure all old instances are gone before launching)
-pkill -f polybar || true
-sleep 0.5
-if [ -x "$HOME/.config/polybar/launch_polybar.sh" ]; then
-  "$HOME/.config/polybar/launch_polybar.sh" &
-elif [ -x "$HOME/.config/polybar/launch_polybar" ]; then
-  "$HOME/.config/polybar/launch_polybar" &
+# ---------- Polybar handling ----------
+if [ "$I3_POLYBAR_MANAGED" = false ]; then
+  echo "Polybar is script-managed. Restarting..."
+  pkill -f polybar || true
+  sleep 0.5
+  if [ -x "$HOME/.config/polybar/launch_polybar.sh" ]; then
+    "$HOME/.config/polybar/launch_polybar.sh" &
+  elif [ -x "$HOME/.config/polybar/launch_polybar" ]; then
+    "$HOME/.config/polybar/launch_polybar" &
+  fi
+else
+  echo "Polybar managed by i3 config — skipping manual restart."
 fi
 
-# Restart picom
+# ---------- Restart picom ----------
 pkill picom || true
 if command -v picom >/dev/null 2>&1; then
   picom --config "$HOME/.config/picom.conf" &
 fi
 
-echo "Theme switch complete. Note: Alacritty, Neovim, and btop may need restarting to pick up new themes."
+# ---------- Reapply GTK after reload ----------
+if command -v gsettings >/dev/null 2>&1; then
+  echo "Reapplying GTK theme to ensure consistency..."
+  sleep 1
+  if [ "$THEME" = "mocha" ]; then
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' || true
+  else
+    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light' || true
+  fi
+fi
+
+echo "Theme switch complete → $THEME"
+echo "Restart Alacritty, Neovim, or btop if they didn’t reload colors."
+
