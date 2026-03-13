@@ -119,5 +119,5 @@ source ~/.config/bash/rc
 
 # Use starship with bash
 eval "$(starship init bash)"
-
-eval "$($HOME/.local/bin/mise activate bash)"
+export PATH="$HOME/.devcontainers/bin:$PATH"
+export PATH="$HOME/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/sbin:/bin:$PATH"
