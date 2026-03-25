@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-SCRIPTS_DIR="$(dirname "$0")"
+SCRIPTS_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 show_menu() {
   echo "Select components to install (y/n):"
