@@ -4,14 +4,14 @@ set -euo pipefail
 # theme-switch.sh — Catppuccin theme switcher for Alacritty, Rofi, btop, i3, Polybar, picom, GTK, and wallpaper.
 # Usage: theme-switch.sh <mocha|latte|toggle|dry-run>
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_DIR="$(realpath "$SCRIPT_DIR/../../../../")"
+REAL_SCRIPT="$(realpath "${BASH_SOURCE[0]}")"
+DOTFILES_DIR="$(realpath "$(dirname "$REAL_SCRIPT")/../../../../")"
 
 TARGET_ALACRITTY="$HOME/.config/alacritty/current-theme.toml"
 TARGET_ROFI="$HOME/.config/rofi/theme.rasi"
 TARGET_BTOP="$HOME/.config/btop/themes/current.theme"
 TARGET_I3_COLORS="$HOME/.config/i3/themes/current-colors"
-TARGET_POLYBAR="$HOME/.config/polybar/config.ini"
+TARGET_POLYBAR_COLORS="$HOME/.config/polybar/colors.ini"
 I3_CONFIG="$HOME/.config/i3/config"
 
 MODE="${1:-toggle}"
@@ -59,9 +59,6 @@ THEME=$(choose_theme "$MODE")
 THEME_DIR="$DOTFILES_DIR/theme/catppuccin/$THEME"
 
 echo "Switching theme → $THEME"
-if command -v notify-send >/dev/null 2>&1; then
-  notify-send "Theme switched" "Catppuccin $THEME applied"
-fi
 
 if [ "$DRY_RUN" = true ]; then
   echo "Dry run mode. Files would be copied from:"
@@ -74,15 +71,16 @@ mkdir -p "$HOME/.config/alacritty" \
          "$(dirname "$TARGET_ROFI")" \
          "$(dirname "$TARGET_BTOP")" \
          "$(dirname "$TARGET_I3_COLORS")" \
-         "$HOME/.config/polybar"
+         "$(dirname "$TARGET_POLYBAR_COLORS")"
 
 cp -v "$THEME_DIR/alacritty.toml" "$TARGET_ALACRITTY"
 cp -v "$THEME_DIR/rofi.rasi" "$TARGET_ROFI"
 cp -v "$THEME_DIR/btop.theme" "$TARGET_BTOP"
 cp -v "$THEME_DIR/i3-colors" "$TARGET_I3_COLORS"
-if [ -f "$THEME_DIR/polybar.ini" ]; then
-  cp -v "$THEME_DIR/polybar.ini" "$TARGET_POLYBAR"
-  echo "Installed polybar config for $THEME."
+cp -v "$THEME_DIR/polybar-colors.ini" "$TARGET_POLYBAR_COLORS"
+
+if command -v notify-send >/dev/null 2>&1; then
+  notify-send "Theme switched" "Catppuccin $THEME applied"
 fi
 
 # ---------- Persist GTK before reload ----------
@@ -91,7 +89,7 @@ apply_gtk_theme_persistent "$THEME"
 # ---------- Wallpaper switching ----------
 WALLPAPER_DIR="$HOME/.local/share/backgrounds"
 if [ "$THEME" = "latte" ]; then
-  LATTE_BG_DIR="$HOME/.local/share/backgrounds-latte"
+  LATTE_BG_DIR="$HOME/.local/share/backgrounds_latte"
   mkdir -p "$LATTE_BG_DIR"
   if ! ls "$LATTE_BG_DIR"/*.{png,jpg,jpeg,gif,bmp,tiff,svg,webp,JPG,JPEG,PNG} >/dev/null 2>&1; then
     if [ -f "$HOME/.local/share/backgrounds/bg.png" ]; then
@@ -137,17 +135,6 @@ fi
 pkill picom || true
 if command -v picom >/dev/null 2>&1; then
   picom --config "$HOME/.config/picom.conf" &
-fi
-
-# ---------- Reapply GTK after reload ----------
-if command -v gsettings >/dev/null 2>&1; then
-  echo "Reapplying GTK theme to ensure consistency..."
-  sleep 1
-  if [ "$THEME" = "mocha" ]; then
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' || true
-  else
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light' || true
-  fi
 fi
 
 echo "Theme switch complete → $THEME"

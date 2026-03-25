@@ -3,7 +3,7 @@
 #
 # THEME-AWARE WALLPAPER DIRECTORY USAGE:
 #   - For Catppuccin Mocha (dark): use ./backgrounds (symlinked to ~/.local/share/backgrounds)
-#   - For Catppuccin Latte (light): use ./backgrounds-latte (symlinked to ~/.local/share/backgrounds-latte)
+#   - For Catppuccin Latte (light): use ./backgrounds_latte (symlinked to ~/.local/share/backgrounds_latte)
 #
 #   theme-switch.sh will call this script with the correct directory for the current theme.
 #   This script will ONLY use the directory passed as the first argument (if valid),
@@ -13,12 +13,10 @@
 #
 # Place wallpapers in:
 #   - ~/.local/share/backgrounds         (for dark/mocha)
-#   - ~/.local/share/backgrounds-latte   (for light/latte)
+#   - ~/.local/share/backgrounds_latte   (for light/latte)
 
 
 set -euo pipefail
-
-readonly SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
 
 # THEME DIRECTORY LOGIC
 # 1. If a directory argument is given, use it (for theme-switch.sh)
@@ -68,8 +66,10 @@ ensure_dir() {
 
 # Get sorted list of image files (more formats, natural sort)
 images() {
+    local files
     shopt -s nullglob
-    local files=("$DIR"/*.{png,jpg,jpeg,gif,bmp,tiff,svg,webp,JPG,JPEG,PNG})
+    files=("$DIR"/*.{png,jpg,jpeg,gif,bmp,tiff,svg,webp,JPG,JPEG,PNG})
+    shopt -u nullglob
     if (( ${#files[@]} == 0 )); then
         return 1
     fi
@@ -116,7 +116,8 @@ apply_current() {
 # Cycle through wallpapers (next/prev)
 cycle() {
     local direction="$1"  # "next" or "prev"
-    local image_list=($(images))
+    local image_list
+    mapfile -t image_list < <(images)
     
     (( ${#image_list[@]} == 0 )) && error "No images found in $DIR"
     
@@ -166,7 +167,8 @@ set_wallpaper() {
 
 # Pick random wallpaper
 random_wallpaper() {
-    local image_list=($(images))
+    local image_list
+    mapfile -t image_list < <(images)
     (( ${#image_list[@]} == 0 )) && error "No images found in $DIR"
     
     local random_idx=$(( RANDOM % ${#image_list[@]} ))

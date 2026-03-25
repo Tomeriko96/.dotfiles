@@ -37,7 +37,7 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 exec --no-startup-id nm-applet
 
 # Kill any hanging polybar processes and launch polybar
-exec_always killall polybar
+exec_always --no-startup-id killall -q polybar || true
 exec_always --no-startup-id ~/.config/polybar/launch_polybar.sh
 
 # Set wallpaper (managed)
@@ -54,12 +54,6 @@ exec_always --no-startup-id setxkbmap -layout "us,il" -option "grp:alts_toggle"
 
 # Dark mode for GTK apps
 exec_always --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
-
-# Use only external monitor, if connected
-exec_always --no-startup-id ~/.config/i3/scripts/monitor-layout.sh
-
-# Optional: Quick toggle key (Mod+F4 to run script)
-bindsym $mod+F4 exec --no-startup-id ~/bin/monitor-layout.sh
 
 # Clipboard manager using greenclip
 exec --no-startup-id greenclip daemon
@@ -256,4 +250,4 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 
 
-include /home/tomer/.config/i3/themes/current-colors
+include ~/.config/i3/themes/current-colors

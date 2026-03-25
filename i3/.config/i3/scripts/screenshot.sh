@@ -2,7 +2,7 @@
 
 
 # Use the current timestamp as the unique filename of the screenshot.
-FILE_PATH="/home/$USER/Pictures/screenshot-$(date -u +'%Y%m%d-%H%M%SZ').png"
+FILE_PATH="$HOME/Pictures/screenshot-$(date -u +'%Y%m%d-%H%M%SZ').png"
 
 main() {
     case $1 in
