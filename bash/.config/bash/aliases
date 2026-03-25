@@ -29,13 +29,6 @@ if command -v batcat &> /dev/null; then
 fi
 
 # =====================
-# Smart cd with zoxide
-# =====================
-if command -v zoxide &> /dev/null; then
-  alias cd="zd"
-fi
-
-# =====================
 # Compression
 # =====================
 alias decompress="tar -xzf"
