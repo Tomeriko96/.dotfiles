@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(realpath "$SCRIPT_DIR/../../../../")"
 
 TARGET_ALACRITTY="$HOME/.config/alacritty/current-theme.toml"
+TARGET_KITTY="$HOME/.config/kitty/current-theme.conf"
 TARGET_ROFI="$HOME/.config/rofi/theme.rasi"
 TARGET_BTOP="$HOME/.config/btop/themes/current.theme"
 TARGET_I3_COLORS="$HOME/.config/i3/themes/current-colors"
@@ -71,12 +72,17 @@ fi
 
 # ---------- Copy theme files ----------
 mkdir -p "$HOME/.config/alacritty" \
+         "$HOME/.config/kitty" \
          "$(dirname "$TARGET_ROFI")" \
          "$(dirname "$TARGET_BTOP")" \
          "$(dirname "$TARGET_I3_COLORS")" \
          "$HOME/.config/polybar"
 
 cp -v "$THEME_DIR/alacritty.toml" "$TARGET_ALACRITTY"
+if [ -f "$THEME_DIR/kitty.conf" ]; then
+  cp -v "$THEME_DIR/kitty.conf" "$TARGET_KITTY"
+  kill -SIGUSR1 "$(pgrep -x kitty)" 2>/dev/null || true
+fi
 cp -v "$THEME_DIR/rofi.rasi" "$TARGET_ROFI"
 cp -v "$THEME_DIR/btop.theme" "$TARGET_BTOP"
 cp -v "$THEME_DIR/i3-colors" "$TARGET_I3_COLORS"
@@ -151,5 +157,5 @@ if command -v gsettings >/dev/null 2>&1; then
 fi
 
 echo "Theme switch complete → $THEME"
-echo "Restart Alacritty, Neovim, or btop if they didn’t reload colors."
+echo "Restart Alacritty/Kitty, Neovim, or btop if they didn’t reload colors."
 
